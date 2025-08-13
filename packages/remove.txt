@@ -1,0 +1,18 @@
+lutris
+waydroid
+protonup-qt
+sunshine
+distrobox
+barrier
+bottles
+rclone
+toolbox
+hhd
+hhd-ui
+adhustor
+vim
+tailscale
+# Drop all kernel-pinned modules
+kmod-*
+akmods
+akmod-*
