@@ -9,7 +9,7 @@ rclone
 toolbox
 hhd
 hhd-ui
-adhustor
+hhd-adjustor
 vim
 tailscale
 # Drop all kernel-pinned modules
