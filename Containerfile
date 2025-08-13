@@ -1,30 +1,16 @@
-# Allow build scripts to be referenced without being copied into the final image
-FROM scratch AS ctx
-COPY build_files /
+FROM ghcr.io/ublue-os/bazzite-deck
 
-# Base Image
-FROM ghcr.io/ublue-os/bazzite:stable
+# Add CachyOS kernel COPR repo
+RUN curl -sSL -o /etc/yum.repos.d/bieszczaders-kernel-cachyos.repo \
+    https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/repo/fedora-$(rpm -E %fedora)/bieszczaders-kernel-cachyos-fedora-$(rpm -E %fedora).repo
 
-## Other possible base images include:
-# FROM ghcr.io/ublue-os/bazzite:latest
-# FROM ghcr.io/ublue-os/bluefin-nvidia:stable
-# 
-# ... and so on, here are more base images
-# Universal Blue Images: https://github.com/orgs/ublue-os/packages
-# Fedora base image: quay.io/fedora/fedora-bootc:41
-# CentOS base images: quay.io/centos-bootc/centos-bootc:stream10
+# Replace Fedora kernel with CachyOS kernel
+RUN rpm-ostree override remove \
+      kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra \
+    --install kernel-cachyos
 
-### MODIFICATIONS
-## make modifications desired in your image and install packages by modifying the build.sh script
-## the following RUN directive does all the things required to run "build.sh" as recommended.
+# Allow kernel modules under SELinux
+RUN setsebool -P domain_kernel_load_modules on
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=cache,dst=/var/cache \
-    --mount=type=cache,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    /ctx/build.sh && \
-    ostree container commit
-    
-### LINTING
-## Verify final image and contents are correct.
-RUN bootc container lint
+# Remove hhd and hhd-ui
+RUN rpm-ostree uninstall hhd hhd-ui
