@@ -1,24 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -ouex pipefail
+PACKAGES_DIR=/tmp/packages
+REMOVE_LIST="$PACKAGES_DIR/remove.txt"
+INSTALL_LIST="$PACKAGES_DIR/install.txt"
 
-### Install packages
+_filter() { grep -vE '^[[:space:]]*(#|$)'; }
 
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
+if [[ -s "$REMOVE_LIST" ]]; then
+  echo "==> Removing base packages via rpm-ostree override remove"
+  mapfile -t RM < <(_filter < "$REMOVE_LIST")
+  if [[ ${#RM[@]} -gt 0 ]]; then
+    rpm-ostree override remove "${RM[@]}"
+  fi
+fi
 
-# this installs a package from fedora repos
-dnf5 install -y tmux 
-
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
-
-#### Example for enabling a System Unit File
-
-systemctl enable podman.socket
+if [[ -s "$INSTALL_LIST" ]]; then
+  echo "==> Installing layered packages via rpm-ostree install"
+  mapfile -t PKG < <(_filter < "$INSTALL_LIST")
+  if [[ ${#PKG[@]} -gt 0 ]]; then
+    rpm-ostree install "${PKG[@]}"
+  fi
+fi
