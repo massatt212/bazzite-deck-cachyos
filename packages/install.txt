@@ -1,8 +1,0 @@
-steam
-gamescope
-mangohud
-goverlay
-wine
-wine-core
-wine-mono
-winetricks
