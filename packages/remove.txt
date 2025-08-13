@@ -12,7 +12,3 @@ hhd-ui
 hhd-adjustor
 vim
 tailscale
-# Drop all kernel-pinned modules
-kmod-*
-akmods
-akmod-*
